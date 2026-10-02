@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>QuestIt</h1>
+    <p>Donde tus tareas se hacen misiones</p>
+    <button onclick="mostrarMisiones()">Explorar misiones</button>
+    <<a href="/create-quest">Crear misión</a>
+    <div id="mission-index" style="display: none;">
+        <h2>Índice de misiones</h2>
+        <p>Misión de prueba 1</p>
+        <p>Misión de prueba 2</p>
+    </div>
+</body>
+<script>
+    function mostrarMisiones() {
+        document.getElementById("mission-index").style.display = "block";
+    }
+</script>
+</html>
