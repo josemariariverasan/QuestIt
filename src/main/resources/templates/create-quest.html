@@ -2,9 +2,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Crear misión</title>
 </head>
 <body>
+
+<form>
+    <input id="title" placeholder="Título de la misión...">
+    <textarea id="description" placeholder="Descripción..."></textarea>
+
+    <select id="difficulty">
+        <option value="EASY">Fácil</option>
+        <option value="MEDIUM">Media</option>
+        <option value="HARD">Difícil</option>
+        <option value="EPIC">Épica</option>
+    </select>
+
+    <input id="xp" type="number" placeholder="XP de la misión...">
+    <input id="deadline" type="date">
+
+    <div id="steps">
+    </div>
+
+    <button type="button" onclick="añadirPaso()">Añadir paso</button>
+
+    <button type="submit">Crear misión</button>
+</form>
+
+<script>
+    añadirPaso();
+
+    function crearPaso() {
+        let nuevoPaso = document.createElement("div");
+        nuevoPaso.className = "step";
+
+        let nuevoInput = document.createElement("input");
+        nuevoInput.className = "step-title";
+        nuevoInput.placeholder = "Paso...";
+
+        nuevoPaso.appendChild(nuevoInput);
+
+        let substeps = document.createElement("div");
+        substeps.className = "substeps";
+
+        nuevoPaso.appendChild(substeps);
+
+        let nuevoBoton = document.createElement("button");
+        nuevoBoton.textContent = "Añadir subpaso";
+        nuevoBoton.type = "button";
+
+        nuevoBoton.onclick = function() {
+            añadirSubpaso(nuevoPaso);
+        };
+
+        nuevoPaso.appendChild(nuevoBoton);
+
+        return nuevoPaso;
+    }
+
+    function añadirPaso() {
+        let nuevoPaso = crearPaso();
+
+        document.getElementById("steps").appendChild(nuevoPaso);
+    }
+
+    function añadirSubpaso(padre) {
+        let nuevoSubpaso = crearPaso();
+
+        let contenedor = padre.querySelector(".substeps");
+
+        contenedor.appendChild(nuevoSubpaso);
+    }
+
+    function convertirPaso(step) {
+
+        let titulo = step.querySelector(".step-title").value;
+
+        let substeps = step.querySelector(".substeps");
+
+        let hijos = substeps.querySelectorAll(":scope > .step");
+
+        let steps = [];
+
+        for (let hijo of hijos) {
+            steps.push(convertirPaso(hijo));
+        }
+
+        return {
+            title: titulo,
+            steps: steps
+        };
+    }
+
+    function convertirPasos() {
+
+        let pasosPrincipales = document.querySelectorAll("#steps > .step");
+
+        let steps = [];
+
+        for (let paso of pasosPrincipales) {
+            steps.push(convertirPaso(paso));
+        }
+
+        return steps;
+    }
+
+    document.querySelector("form").addEventListener("submit", function(event) {
+
+        event.preventDefault();
+
+        let mission = {
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+            difficulty: document.getElementById("difficulty").value,
+            xp: Number(document.getElementById("xp").value),
+            deadline: document.getElementById("deadline").value,
+            steps: convertirPasos()
+        };
+
+        let missions = JSON.parse(localStorage.getItem("missions")) || [];
+
+        missions.push(mission);
+
+        localStorage.setItem("missions", JSON.stringify(missions));
+
+        console.log(missions);
+    });
+</script>
 
 </body>
 </html>
