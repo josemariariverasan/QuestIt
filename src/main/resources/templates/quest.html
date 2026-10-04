@@ -1,10 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>QuestIt - Misión</title>
 </head>
 <body>
+
+<h1 id="title"></h1>
+
+<p id="description"></p>
+
+<p>Dificultad: <span id="difficulty"></span></p>
+<p>XP: <span id="xp"></span></p>
+<p>Fecha límite: <span id="deadline"></span></p>
+
+<h2>Progreso: <span id="progress">0%</span></h2>
+
+<h2>Pasos</h2>
+
+<div id="steps"></div>
+
+<script>
+
+    let url = window.location.pathname;
+    let id = url.split("/").pop();
+
+    let missions = JSON.parse(localStorage.getItem("missions")) || [];
+
+    let mission = missions.find(function(mission) {
+        return mission.id === id;
+    });
+
+    if (mission) {
+
+        document.getElementById("title").textContent = mission.title;
+        document.getElementById("description").textContent = mission.description;
+        document.getElementById("difficulty").textContent = mission.difficulty;
+        document.getElementById("xp").textContent = mission.xp;
+        document.getElementById("deadline").textContent = mission.deadline;
+
+        mostrarPasos(
+            mission.steps,
+            document.getElementById("steps")
+        );
+
+        actualizarProgreso();
+    }
+
+    function mostrarPasos(steps, contenedor) {
+
+        for (let step of steps) {
+
+            let elemento = document.createElement("div");
+
+            let checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+
+            let tieneHijos = step.steps.length > 0;
+
+            if (tieneHijos) {
+
+                checkbox.checked = estaCompletado(step);
+                checkbox.disabled = true;
+
+            } else {
+
+                checkbox.checked = step.completed || false;
+
+                checkbox.addEventListener("change", function() {
+
+                    step.completed = checkbox.checked;
+
+                    guardarMisiones();
+                    actualizarPasosVisualmente();
+                    actualizarProgreso();
+                });
+            }
+
+            let texto = document.createElement("span");
+            texto.textContent = step.title;
+
+            elemento.appendChild(checkbox);
+            elemento.appendChild(texto);
+
+            contenedor.appendChild(elemento);
+
+            if (tieneHijos) {
+
+                let substeps = document.createElement("div");
+
+                substeps.className = "substeps";
+
+                contenedor.appendChild(substeps);
+
+                mostrarPasos(step.steps, substeps);
+            }
+        }
+    }
+
+    function estaCompletado(step) {
+
+        if (step.steps.length === 0) {
+            return step.completed || false;
+        }
+
+        for (let substep of step.steps) {
+
+            if (!estaCompletado(substep)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function actualizarPasosVisualmente() {
+
+        let contenedor = document.getElementById("steps");
+
+        contenedor.innerHTML = "";
+
+        mostrarPasos(
+            mission.steps,
+            contenedor
+        );
+    }
+
+    function actualizarProgreso() {
+
+        let pasos = mission.steps;
+
+        let total = pasos.length;
+        let completados = 0;
+
+        for (let paso of pasos) {
+
+            if (estaCompletado(paso)) {
+                completados++;
+            }
+        }
+
+        let porcentaje = 0;
+
+        if (total > 0) {
+            porcentaje = Math.round((completados / total) * 100);
+        }
+
+        document.getElementById("progress").textContent = porcentaje + "%";
+    }
+
+    function guardarMisiones() {
+
+        localStorage.setItem(
+            "missions",
+            JSON.stringify(missions)
+        );
+    }
+
+</script>
 
 </body>
 </html>

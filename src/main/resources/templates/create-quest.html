@@ -111,6 +111,7 @@
         event.preventDefault();
 
         let mission = {
+            id: crypto.randomUUID(),
             title: document.getElementById("title").value,
             description: document.getElementById("description").value,
             difficulty: document.getElementById("difficulty").value,

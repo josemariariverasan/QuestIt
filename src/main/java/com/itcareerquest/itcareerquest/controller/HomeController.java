@@ -14,4 +14,8 @@ public class HomeController {
     public String createQuest() {
         return "create-quest";
     }
+    @GetMapping("/quests/{id}")
+    public String quest() {
+        return "quest";
+    }
 }

@@ -23,26 +23,26 @@
 <script>
 
     function mostrarMisiones() {
-
         let indice = document.getElementById("mission-index");
-
         indice.style.display = "block";
 
         let contenedor = document.getElementById("missions");
-
         contenedor.innerHTML = "";
 
         let missions = JSON.parse(localStorage.getItem("missions")) || [];
 
         for (let mission of missions) {
+            let enlace = document.createElement("a");
 
-            let missionElement = document.createElement("p");
+            enlace.textContent = mission.title;
+            enlace.href = "/quests/" + mission.id;
 
-            missionElement.textContent = mission.title;
-
-            contenedor.appendChild(missionElement);
+            let elemento = document.createElement("p");
+            elemento.appendChild(enlace);
+            contenedor.appendChild(elemento);
         }
-    }contenedor.appendChild(missionElement);
+    }
+    contenedor.appendChild(missionElement);
 
 
 </script>
