@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>QuestIt</title>
@@ -7,43 +7,145 @@
 <body>
 
 <h1>QuestIt</h1>
-<p>Donde tus tareas se hacen misiones</p>
 
-<button onclick="mostrarMisiones()">Explorar misiones</button>
+<p>Donde tus tareas se hacen misiones</p>
 
 <a href="/create-quest">Crear misión</a>
 
-<div id="mission-index" style="display: none;">
-    <h2>Índice de misiones</h2>
+<br><br>
 
-    <div id="missions">
-    </div>
+<button type="button" onclick="mostrarMisiones()">
+    Misiones
+</button>
+
+<button type="button" onclick="mostrarTerminadas()">
+    Terminadas
+</button>
+
+<div id="mission-index">
+
+    <h2 id="section-title">Misiones</h2>
+
+    <div id="missions"></div>
+
 </div>
 
 <script>
 
-    function mostrarMisiones() {
-        let indice = document.getElementById("mission-index");
-        indice.style.display = "block";
+    function obtenerMisiones() {
+        return JSON.parse(localStorage.getItem("missions")) || [];
+    }
 
+
+    function mostrarMisiones() {
+
+        let missions = obtenerMisiones();
+
+        let activas = missions.filter(function(mission) {
+            return !mission.completed;
+        });
+
+        mostrarLista(
+            activas,
+            "Misiones"
+        );
+    }
+
+
+    function mostrarTerminadas() {
+
+        let missions = obtenerMisiones();
+
+        let terminadas = missions.filter(function(mission) {
+            return mission.completed;
+        });
+
+        mostrarLista(
+            terminadas,
+            "Terminadas"
+        );
+    }
+
+
+    function mostrarLista(missions, titulo) {
+
+        let tituloSeccion = document.getElementById("section-title");
         let contenedor = document.getElementById("missions");
+
+        tituloSeccion.textContent = titulo;
+
         contenedor.innerHTML = "";
 
-        let missions = JSON.parse(localStorage.getItem("missions")) || [];
-
         for (let mission of missions) {
+
+            let elemento = document.createElement("div");
+
             let enlace = document.createElement("a");
 
             enlace.textContent = mission.title;
             enlace.href = "/quests/" + mission.id;
 
-            let elemento = document.createElement("p");
             elemento.appendChild(enlace);
+
+            if (!mission.completed) {
+
+                let botonBorrar = document.createElement("button");
+
+                botonBorrar.textContent = "Borrar misión";
+                botonBorrar.type = "button";
+
+                botonBorrar.onclick = function() {
+                    borrarMision(mission.id);
+                };
+
+                elemento.appendChild(botonBorrar);
+            }
+
+            if (mission.completed) {
+
+                let fecha = document.createElement("span");
+
+                fecha.textContent =
+                    " — Completada el " + mission.completedAt;
+
+                elemento.appendChild(fecha);
+            }
+
             contenedor.appendChild(elemento);
+
+            contenedor.appendChild(
+                document.createElement("br")
+            );
         }
     }
-    contenedor.appendChild(missionElement);
 
+
+    function borrarMision(id) {
+
+        let confirmado = confirm(
+            "¿Seguro que quieres borrar esta misión?"
+        );
+
+        if (!confirmado) {
+            return;
+        }
+
+        let missions = obtenerMisiones();
+
+        missions = missions.filter(function(mission) {
+            return mission.id !== id;
+        });
+
+        localStorage.setItem(
+            "missions",
+            JSON.stringify(missions)
+        );
+
+        mostrarMisiones();
+    }
+
+
+    mostrarMisiones();
 
 </script>
 
