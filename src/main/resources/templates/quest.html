@@ -8,6 +8,8 @@
 
 <a href="/">Volver a misiones</a>
 
+<a id="edit-link">Editar misión</a>
+
 <h1 id="title"></h1>
 
 <p id="description"></p>
@@ -76,6 +78,8 @@
 
         document.getElementById("deadline")
             .textContent = mission.deadline;
+        document.getElementById("edit-link").href =
+            "/quests/" + id + "/edit";
 
 
         mostrarPasos(

@@ -2,115 +2,192 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Crear misión</title>
+    <title>QuestIt - Crear misión</title>
 </head>
 <body>
 
-<h1>Crear misión</h1>
+<h1 id="form-title">Crear misión</h1>
 
-<a href="/">Ver misiones</a>
-
-<br><br>
+<a href="/">Volver a misiones</a>
 
 <form>
 
-    <input
-            id="title"
-            placeholder="Título de la misión..."
-    >
+    <input id="title" placeholder="Título de la misión...">
 
-    <br><br>
-
-    <textarea
-            id="description"
-            placeholder="Descripción..."
-    ></textarea>
-
-    <br><br>
+    <textarea id="description"
+              placeholder="Descripción..."></textarea>
 
     <select id="difficulty">
-
         <option value="EASY">Fácil</option>
         <option value="MEDIUM">Media</option>
         <option value="HARD">Difícil</option>
         <option value="EPIC">Épica</option>
-
     </select>
 
-    <br><br>
+    <input id="xp"
+           type="number"
+           placeholder="XP de la misión...">
 
-    <input
-            id="xp"
-            type="number"
-            placeholder="XP de la misión..."
-    >
-
-    <br><br>
-
-    <input
-            id="deadline"
-            type="date"
-    >
-
-    <br><br>
+    <input id="deadline" type="date">
 
     <div id="steps"></div>
-
-    <br>
 
     <button type="button" onclick="añadirPaso()">
         Añadir paso
     </button>
 
-    <button type="submit">
+    <button type="submit" id="submit-button">
         Crear misión
     </button>
 
 </form>
 
-
 <script>
 
-    añadirPaso();
+    let url = window.location.pathname;
+
+    let partes = url.split("/");
+
+    let editando =
+        partes[1] === "quests" &&
+        partes[3] === "edit";
+
+    let missionId = null;
+
+    if (editando) {
+
+        missionId = partes[2];
+
+    }
 
 
-    function crearPaso() {
+    if (editando) {
 
-        let nuevoPaso = document.createElement("div");
+        document.getElementById("form-title").textContent =
+            "Editar misión";
+
+        document.getElementById("submit-button").textContent =
+            "Guardar cambios";
+
+        cargarMision();
+
+    } else {
+
+        añadirPaso();
+
+    }
+
+
+    function crearPaso(pasoExistente = null) {
+
+        let nuevoPaso =
+            document.createElement("div");
 
         nuevoPaso.className = "step";
 
 
-        let nuevoInput = document.createElement("input");
+        if (pasoExistente &&
+            pasoExistente.completed !== undefined) {
 
-        nuevoInput.className = "step-title";
-        nuevoInput.placeholder = "Paso...";
+            nuevoPaso.dataset.completed =
+                pasoExistente.completed;
+
+        }
+
+
+        let nuevoInput =
+            document.createElement("input");
+
+        nuevoInput.className =
+            "step-title";
+
+        nuevoInput.placeholder =
+            "Paso...";
+
+
+        if (pasoExistente) {
+
+            nuevoInput.value =
+                pasoExistente.title;
+
+        }
 
 
         nuevoPaso.appendChild(nuevoInput);
 
 
-        let substeps = document.createElement("div");
+        let substeps =
+            document.createElement("div");
 
-        substeps.className = "substeps";
+        substeps.className =
+            "substeps";
 
         nuevoPaso.appendChild(substeps);
 
 
-        let nuevoBoton = document.createElement("button");
+        let nuevoBoton =
+            document.createElement("button");
 
-        nuevoBoton.textContent = "Añadir subpaso";
-        nuevoBoton.type = "button";
+        nuevoBoton.textContent =
+            "Añadir subpaso";
+
+        nuevoBoton.type =
+            "button";
 
 
-        nuevoBoton.onclick = function() {
+        nuevoBoton.onclick =
+            function() {
 
-            añadirSubpaso(nuevoPaso);
+                añadirSubpaso(nuevoPaso);
 
-        };
+            };
 
 
         nuevoPaso.appendChild(nuevoBoton);
+
+
+        /*
+         * Botón para eliminar este paso.
+         */
+
+        let botonEliminar =
+            document.createElement("button");
+
+        botonEliminar.textContent =
+            "Eliminar";
+
+        botonEliminar.type =
+            "button";
+
+
+        botonEliminar.onclick =
+            function() {
+
+                eliminarPaso(nuevoPaso);
+
+            };
+
+
+        nuevoPaso.appendChild(botonEliminar);
+
+
+        /*
+         * Reconstruir subpasos existentes
+         * cuando estamos editando.
+         */
+
+        if (pasoExistente) {
+
+            for (let hijo of pasoExistente.steps) {
+
+                let nuevoSubpaso =
+                    crearPaso(hijo);
+
+                substeps.appendChild(nuevoSubpaso);
+
+            }
+
+        }
 
 
         return nuevoPaso;
@@ -119,22 +196,45 @@
 
     function añadirPaso() {
 
-        let nuevoPaso = crearPaso();
+        let nuevoPaso =
+            crearPaso();
 
-        document
-            .getElementById("steps")
+        document.getElementById("steps")
             .appendChild(nuevoPaso);
+
     }
 
 
     function añadirSubpaso(padre) {
 
-        let nuevoSubpaso = crearPaso();
+        let nuevoSubpaso =
+            crearPaso();
 
         let contenedor =
             padre.querySelector(".substeps");
 
         contenedor.appendChild(nuevoSubpaso);
+
+    }
+
+
+    function eliminarPaso(paso) {
+
+        let confirmado =
+            confirm(
+                "¿Quieres eliminar este paso?"
+            );
+
+
+        if (!confirmado) {
+
+            return;
+
+        }
+
+
+        paso.remove();
+
     }
 
 
@@ -147,7 +247,9 @@
             step.querySelector(".substeps");
 
         let hijos =
-            substeps.querySelectorAll(":scope > .step");
+            substeps.querySelectorAll(
+                ":scope > .step"
+            );
 
         let steps = [];
 
@@ -157,20 +259,37 @@
             steps.push(
                 convertirPaso(hijo)
             );
+
         }
 
 
-        return {
+        let resultado = {
+
             title: titulo,
+
             steps: steps
+
         };
+
+
+        if (step.dataset.completed !== undefined) {
+
+            resultado.completed =
+                step.dataset.completed === "true";
+
+        }
+
+
+        return resultado;
     }
 
 
     function convertirPasos() {
 
         let pasosPrincipales =
-            document.querySelectorAll("#steps > .step");
+            document.querySelectorAll(
+                "#steps > .step"
+            );
 
         let steps = [];
 
@@ -180,6 +299,7 @@
             steps.push(
                 convertirPaso(paso)
             );
+
         }
 
 
@@ -187,60 +307,215 @@
     }
 
 
-    document
-        .querySelector("form")
-        .addEventListener("submit", function(event) {
+    function cargarMision() {
 
-            event.preventDefault();
-
-
-            let mission = {
-
-                id: crypto.randomUUID(),
-
-                title:
-                document.getElementById("title").value,
-
-                description:
-                document.getElementById("description").value,
-
-                difficulty:
-                document.getElementById("difficulty").value,
-
-                xp:
-                    Number(
-                        document.getElementById("xp").value
-                    ),
-
-                deadline:
-                document.getElementById("deadline").value,
-
-                steps:
-                    convertirPasos(),
-
-                completed: false,
-
-                completedAt: null
-            };
+        let missions =
+            JSON.parse(
+                localStorage.getItem("missions")
+            ) || [];
 
 
-            let missions =
-                JSON.parse(
-                    localStorage.getItem("missions")
-                ) || [];
+        let mission =
+            missions.find(function(mission) {
+
+                return mission.id === missionId;
+
+            });
 
 
-            missions.push(mission);
+        if (!mission) {
 
-
-            localStorage.setItem(
-                "missions",
-                JSON.stringify(missions)
-            );
-
+            alert("No se encontró la misión.");
 
             window.location.href = "/";
-        });
+
+            return;
+
+        }
+
+
+        document.getElementById("title").value =
+            mission.title;
+
+        document.getElementById("description").value =
+            mission.description;
+
+        document.getElementById("difficulty").value =
+            mission.difficulty;
+
+        document.getElementById("xp").value =
+            mission.xp;
+
+        document.getElementById("deadline").value =
+            mission.deadline;
+
+
+        let contenedor =
+            document.getElementById("steps");
+
+        contenedor.innerHTML = "";
+
+
+        for (let paso of mission.steps) {
+
+            let elemento =
+                crearPaso(paso);
+
+            contenedor.appendChild(elemento);
+
+        }
+
+    }
+
+
+    document.querySelector("form")
+        .addEventListener(
+            "submit",
+            function(event) {
+
+                event.preventDefault();
+
+
+                let missions =
+                    JSON.parse(
+                        localStorage.getItem("missions")
+                    ) || [];
+
+
+                /*
+                 * CREAR
+                 */
+
+                if (!editando) {
+
+                    let mission = {
+
+                        id: crypto.randomUUID(),
+
+                        title:
+                        document.getElementById(
+                            "title"
+                        ).value,
+
+                        description:
+                        document.getElementById(
+                            "description"
+                        ).value,
+
+                        difficulty:
+                        document.getElementById(
+                            "difficulty"
+                        ).value,
+
+                        xp:
+                            Number(
+                                document.getElementById(
+                                    "xp"
+                                ).value
+                            ),
+
+                        deadline:
+                        document.getElementById(
+                            "deadline"
+                        ).value,
+
+                        steps:
+                            convertirPasos(),
+
+                        completed: false,
+
+                        completedAt: null
+
+                    };
+
+
+                    missions.push(mission);
+
+
+                    localStorage.setItem(
+                        "missions",
+                        JSON.stringify(missions)
+                    );
+
+
+                    window.location.href = "/";
+
+                    return;
+
+                }
+
+
+                /*
+                 * EDITAR
+                 */
+
+                let mission =
+                    missions.find(function(mission) {
+
+                        return mission.id === missionId;
+
+                    });
+
+
+                if (!mission) {
+
+                    alert("No se encontró la misión.");
+
+                    return;
+
+                }
+
+
+                mission.title =
+                    document.getElementById(
+                        "title"
+                    ).value;
+
+                mission.description =
+                    document.getElementById(
+                        "description"
+                    ).value;
+
+                mission.difficulty =
+                    document.getElementById(
+                        "difficulty"
+                    ).value;
+
+                mission.xp =
+                    Number(
+                        document.getElementById(
+                            "xp"
+                        ).value
+                    );
+
+                mission.deadline =
+                    document.getElementById(
+                        "deadline"
+                    ).value;
+
+                mission.steps =
+                    convertirPasos();
+
+
+                /*
+                 * No modificamos:
+                 *
+                 * mission.completed
+                 * mission.completedAt
+                 */
+
+
+                localStorage.setItem(
+                    "missions",
+                    JSON.stringify(missions)
+                );
+
+
+                window.location.href =
+                    "/quests/" + missionId;
+
+            }
+        );
 
 </script>
 
