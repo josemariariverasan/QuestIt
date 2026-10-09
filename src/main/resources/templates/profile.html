@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - QuestIt</title>
+</head>
+<body>
+
+<h1>Perfil</h1>
+
+<div id="perfil"></div>
+
+<h2>Experiencia histórica</h2>
+
+<p>
+    <strong id="xpHistoricaDestacada">0 XP</strong>
+</p>
+
+<p>
+    XP ganada a lo largo de toda tu trayectoria.
+</p>
+
+<h2>Progreso de nivel</h2>
+
+<p id="progresoNivel"></p>
+
+<progress id="barraXP" value="0" max="1000"></progress>
+
+<p id="detalleXP"></p>
+
+<p id="xpParaSiguienteNivel"></p>
+
+<h2>Logros conseguidos</h2>
+
+<div id="logros"></div>
+
+<h2>Perfil personal</h2>
+
+<button id="editarPerfil" type="button">Editar perfil</button>
+
+<div id="formulario" style="display: none;">
+    <h3>Editar perfil</h3>
+
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre">
+    <br><br>
+
+    <label for="genero">Género:</label>
+    <select id="genero">
+        <option value="">Prefiero no indicarlo</option>
+        <option value="Hombre">Hombre</option>
+        <option value="Mujer">Mujer</option>
+        <option value="No binario">No binario</option>
+        <option value="Otro">Otro</option>
+    </select>
+    <br><br>
+
+    <button id="guardarPerfil" type="button">Guardar cambios</button>
+    <button id="cancelarEdicion" type="button">Cancelar</button>
+</div>
+
+<br><br>
+
+<a href="/">Volver a misiones</a>
+
+<script src="/js/achievements.js"></script>
+<script src="/js/player.js"></script>
+
+<script>
+    let jugador = obtenerJugador();
+
+    mostrarPerfil();
+    mostrarProgreso();
+    mostrarLogros();
+
+    document.getElementById("editarPerfil").onclick = function () {
+        document.getElementById("nombre").value = jugador.nombre;
+        document.getElementById("genero").value = jugador.genero;
+        document.getElementById("formulario").style.display = "block";
+    };
+
+    document.getElementById("cancelarEdicion").onclick = function () {
+        document.getElementById("formulario").style.display = "none";
+    };
+
+    document.getElementById("guardarPerfil").onclick = function () {
+        const nombre = document.getElementById("nombre").value.trim();
+        const genero = document.getElementById("genero").value;
+
+        if (nombre === "") {
+            alert("El nombre no puede estar vacío.");
+            return;
+        }
+
+        jugador.nombre = nombre;
+        jugador.genero = genero;
+
+        localStorage.setItem("jugador", JSON.stringify(jugador));
+
+        mostrarPerfil();
+        document.getElementById("formulario").style.display = "none";
+    };
+
+    function mostrarPerfil() {
+        const contenedor = document.getElementById("perfil");
+        contenedor.innerHTML = "";
+
+        const nombre = document.createElement("h2");
+        nombre.textContent = jugador.nombre;
+
+        const genero = document.createElement("p");
+        genero.textContent = jugador.genero === ""
+            ? "Género: no indicado"
+            : "Género: " + jugador.genero;
+
+        const nivel = document.createElement("p");
+        nivel.textContent = "Nivel: " + jugador.nivel;
+
+        const xpDisponible = document.createElement("p");
+        xpDisponible.textContent =
+            "XP disponible para gastar: " +
+            jugador.xp.toLocaleString("es-ES");
+
+        contenedor.appendChild(nombre);
+        contenedor.appendChild(genero);
+        contenedor.appendChild(nivel);
+        contenedor.appendChild(xpDisponible);
+
+        document.getElementById("xpHistoricaDestacada").textContent =
+            jugador.xpHistorica.toLocaleString("es-ES") + " XP";
+    }
+
+    function mostrarProgreso() {
+        const xpHistorica = jugador.xpHistorica;
+        const nivel = jugador.nivel;
+
+        const xpInicioNivel = (nivel - 1) * 1000;
+        const xpSiguienteNivel = nivel * 1000;
+        const xpEnNivel = xpHistorica - xpInicioNivel;
+        const xpNecesaria = 1000;
+
+        const porcentaje = Math.min(
+            100,
+            Math.max(0, (xpEnNivel / xpNecesaria) * 100)
+        );
+
+        document.getElementById("progresoNivel").textContent =
+            "Nivel " + nivel + " → Nivel " + (nivel + 1);
+
+        const barra = document.getElementById("barraXP");
+        barra.max = xpNecesaria;
+        barra.value = Math.min(xpNecesaria, Math.max(0, xpEnNivel));
+
+        document.getElementById("detalleXP").textContent =
+            xpEnNivel.toLocaleString("es-ES") + " / " +
+            xpNecesaria.toLocaleString("es-ES") +
+            " XP dentro del nivel actual (" +
+            Math.round(porcentaje) + " %)";
+
+        const xpRestante = Math.max(0, xpSiguienteNivel - xpHistorica);
+
+        document.getElementById("xpParaSiguienteNivel").textContent =
+            xpRestante.toLocaleString("es-ES") +
+            " XP para alcanzar el nivel " + (nivel + 1) +
+            " (" + xpSiguienteNivel.toLocaleString("es-ES") +
+            " XP históricas en total).";
+    }
+
+    function mostrarLogros() {
+        const contenedor = document.getElementById("logros");
+        contenedor.innerHTML = "";
+
+        const logros = obtenerLogros();
+
+        const conseguidos = logros.filter(function (logro) {
+            return logro.completado;
+        });
+
+        if (conseguidos.length === 0) {
+            contenedor.textContent =
+                "Todavía no has conseguido ningún logro.";
+            return;
+        }
+
+        for (const logro of conseguidos) {
+            const elemento = document.createElement("p");
+            elemento.textContent =
+                "🏆 " + logro.nombre + " — " + logro.descripcion;
+
+            contenedor.appendChild(elemento);
+        }
+    }
+</script>
+
+</body>
+</html>

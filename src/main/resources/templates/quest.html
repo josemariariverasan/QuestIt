@@ -39,8 +39,8 @@
 <h2>Pasos</h2>
 
 <div id="steps"></div>
-
-
+<script src="/js/achievements.js"></script>
+<script src="/js/player.js"></script>
 <script>
 
     let url = window.location.pathname;
@@ -310,34 +310,36 @@
         }
     }
 
-
     function completarMision() {
-
-        let confirmado =
-            confirm(
-                "¿Quieres marcar esta misión como completada?"
-            );
-
+        const confirmado = confirm(
+            "¿Quieres marcar esta misión como completada?"
+        );
 
         if (!confirmado) {
-
             return;
         }
 
+        if (mission.completed) {
+            return;
+        }
 
         mission.completed = true;
+        mission.completedAt = new Date().toLocaleString();
 
-
-        mission.completedAt =
-            new Date().toLocaleString();
-
-
+        // Primero guardamos la misión completada.
         guardarMisiones();
 
+        // Después concedemos la experiencia.
+        if (typeof ganarXP === "function") {
+            ganarXP(
+                mission.xp,
+                "Completar misión: " + mission.title
+            );
+        }
 
+        // Actualizamos el botón de la página.
         mostrarBotonCompletar();
     }
-
 
     function guardarMisiones() {
 

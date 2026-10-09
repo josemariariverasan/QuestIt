@@ -25,4 +25,9 @@ public class HomeController {
     public String editQuest() {
         return "create-quest";
     }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "profile";
+    }
 }
