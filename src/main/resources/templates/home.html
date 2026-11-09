@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,149 +5,22 @@
     <title>QuestIt</title>
 </head>
 <body>
-
 <h1>QuestIt</h1>
-
 <p>Donde tus tareas se hacen misiones</p>
-
 <a href="/profile">👤 Perfil</a>
 <a href="/create-quest">Crear misión</a>
-
-<br><br>
-
-<button type="button" onclick="mostrarMisiones()">Misiones</button>
-<button type="button" onclick="mostrarTerminadas()">Terminadas</button>
-<button type="button" onclick="mostrarLogros()">Logros</button>
-
+<p>
+    <button type="button" id="show-quests">Misiones</button>
+    <button type="button" disabled title="Pendiente de incorporar las realizaciones">Terminadas</button>
+    <button type="button" id="show-achievements">Logros</button>
+</p>
 <div id="mission-index">
     <h2 id="section-title">Misiones</h2>
-    <div id="missions"></div>
+    <p id="list-error" role="alert"></p>
+    <div id="missions" aria-live="polite"></div>
 </div>
-
-
 <script src="/js/achievements.js"></script>
 <script src="/js/player.js"></script>
-
-<script>
-    function obtenerMisiones() {
-        return JSON.parse(localStorage.getItem("missions")) || [];
-    }
-
-    function mostrarMisiones() {
-        let missions = obtenerMisiones();
-
-        let activas = missions.filter(function(mission) {
-            return !mission.completed;
-        });
-
-        mostrarLista(activas, "Misiones");
-    }
-
-    function mostrarTerminadas() {
-        let missions = obtenerMisiones();
-
-        let terminadas = missions.filter(function(mission) {
-            return mission.completed;
-        });
-
-        mostrarLista(terminadas, "Terminadas");
-    }
-
-    function mostrarLista(missions, titulo) {
-        let tituloSeccion = document.getElementById("section-title");
-        let contenedor = document.getElementById("missions");
-
-        tituloSeccion.textContent = titulo;
-        contenedor.innerHTML = "";
-
-        for (let mission of missions) {
-            let elemento = document.createElement("div");
-            let enlace = document.createElement("a");
-
-            enlace.textContent = mission.title;
-            enlace.href = "/quests/" + mission.id;
-
-            elemento.appendChild(enlace);
-
-            if (!mission.completed) {
-                let botonBorrar = document.createElement("button");
-
-                botonBorrar.textContent = "Borrar misión";
-                botonBorrar.type = "button";
-
-                botonBorrar.onclick = function() {
-                    borrarMision(mission.id);
-                };
-
-                elemento.appendChild(botonBorrar);
-            }
-
-            if (mission.completed) {
-                let fecha = document.createElement("span");
-
-                fecha.textContent = " — Completada el " + mission.completedAt;
-                elemento.appendChild(fecha);
-            }
-
-            contenedor.appendChild(elemento);
-            contenedor.appendChild(document.createElement("br"));
-        }
-    }
-
-    function borrarMision(id) {
-        let confirmado = confirm("¿Seguro que quieres borrar esta misión?");
-
-        if (!confirmado) {
-            return;
-        }
-
-        let missions = obtenerMisiones();
-
-        missions = missions.filter(function(mission) {
-            return mission.id !== id;
-        });
-
-        localStorage.setItem("missions", JSON.stringify(missions));
-
-        mostrarMisiones();
-    }
-
-    function mostrarLogros() {
-        if (typeof obtenerJugador !== "function") {
-            console.error("No se ha cargado player.js correctamente.");
-            return;
-        }
-
-        let jugador = obtenerJugador();
-
-        let tituloSeccion = document.getElementById("section-title");
-        let contenedor = document.getElementById("missions");
-
-        tituloSeccion.textContent = "Logros";
-        contenedor.innerHTML = "";
-
-        for (let logro of jugador.logros) {
-            let elemento = document.createElement("div");
-
-            let estado = logro.completado
-                ? "🏆 Logro desbloqueado"
-                : "🔒 Bloqueado";
-
-            elemento.textContent =
-                estado + " — " + logro.nombre + ": " + logro.descripcion;
-
-            contenedor.appendChild(elemento);
-        }
-    }
-
-    mostrarMisiones();
-
-    if (typeof comprobarLogrosIniciales === "function") {
-        comprobarLogrosIniciales();
-    } else {
-        console.error("No se ha cargado comprobarLogrosIniciales() desde achievements.js.");
-    }
-</script>
-
+<script type="module" src="/js/quest-list.js"></script>
 </body>
 </html>
